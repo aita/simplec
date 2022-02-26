@@ -5,6 +5,11 @@ class Stmt:
     pass
 
 
+@attr.s(slots=True)
+class Return(Stmt):
+    expression = attr.ib()
+
+
 class Expr(Stmt):
     pass
 

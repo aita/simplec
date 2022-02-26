@@ -5,6 +5,7 @@ from .syntax import (
     Binary,
     Expr,
     Name,
+    Return,
 )
 
 
@@ -13,15 +14,14 @@ class Interpreter:
         self.vars = {}
 
     def interpret(self, program):
-        result = 0
         for stmt in program:
-            result = self.interpret_statement(stmt)
-        return result
-
-    def interpret_statement(self, stmt):
-        match stmt:
-            case Expr() as expr:
-                return self.interpret_expression(expr)
+            match stmt:
+                case Expr() as expr:
+                    self.interpret_expression(expr)
+                case Return(expression=None):
+                    return None
+                case Return(expression=expr):
+                    return self.interpret_expression(expr)
 
     def interpret_expression(self, expr):
         match expr:

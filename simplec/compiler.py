@@ -1,4 +1,12 @@
-from .syntax import Expr, Paren, Number, Unary, Binary, Name
+from .syntax import (
+    Expr,
+    Paren,
+    Number,
+    Unary,
+    Binary,
+    Name,
+    Return,
+)
 
 
 def emit(mnemonic, *operands):
@@ -10,8 +18,8 @@ class Compiler:
         self.names = names
         frame_size = 4
         if names:
-            _, offset = names[-1]
-            frame_size = offset
+            _, max_offset = names[-1]
+            frame_size = max_offset
 
         print(".globl main")
         print("main:")
@@ -20,8 +28,7 @@ class Compiler:
         emit("sub", "sp", f"#{frame_size}")
         for stmt in program:
             self.compile_statement(stmt)
-        print("return:")
-        emit("pop", "{r0}")
+        print("L_return:")
         emit("sub", "sp", "fp", "#4")
         emit("pop", "{fp, pc}")
 
@@ -29,8 +36,14 @@ class Compiler:
         match stmt:
             case Expr() as expr:
                 self.compile_expression(expr)
+            case Return(expression=None):
+                emit("b", "L_return")
+            case Return(expression=expr):
+                self.compile_expression(expr)
+                emit("pop", "{r0}")
+                emit("b", "L_return")
             case _:
-                raise ValueError(stmt)
+                raise ValueError(f"unknown statement: {stmt}")
 
     def compile_expression(self, expr):
         match expr:
@@ -53,7 +66,7 @@ class Compiler:
                         emit("push", "r0")
                     case _:
                         raise ValueError(f"unknown unary operator: {op}")
-            case Binary(operator='=', left=left, right=right):
+            case Binary(operator="=", left=left, right=right):
                 if not left.is_lvar:
                     raise ValueError("LHS is not lvar")
                 right = self.compile_expression(right)
@@ -119,4 +132,4 @@ class Compiler:
                     case _:
                         raise ValueError(f"unknown binary operator: {op}")
             case _:
-                raise ValueError(expr)
+                raise ValueError(f"unknwon expression: {expr}")

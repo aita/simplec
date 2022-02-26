@@ -7,6 +7,7 @@ from .syntax import (
     Paren,
     Unary,
     Binary,
+    Return,
 )
 
 
@@ -52,9 +53,14 @@ class Parser:
         "SEMICOLON",
         "LPAREN",
         "RPAREN",
-        "NAME",
         "NUMBER",
+        "RETURN",
+        "NAME",
     )
+
+    keywords = {
+        "return": "RETURN",
+    }
 
     t_ignore = " \r\t"
 
@@ -72,7 +78,13 @@ class Parser:
     t_SEMICOLON = r";"
     t_LPAREN = r"\("
     t_RPAREN = r"\)"
-    t_NAME = r"[a-zA-Z_][a-zA-Z0-9_]*"
+    t_RETURN = r"return"
+
+    def t_NAME(self, t):
+        r"[a-zA-Z_][a-zA-Z0-9_]*"
+        if t.value in self.keywords:
+            t.type = self.keywords[t.value]
+        return t
 
     def t_NUMBER(self, t):
         r"\d+"
@@ -122,8 +134,19 @@ class Parser:
     def p_statement(self, p):
         """
         statement : expression SEMICOLON
+                  | return
         """
         p[0] = p[1]
+
+    def p_return(self, p):
+        """
+        return : RETURN expression SEMICOLON
+               | RETURN SEMICOLON
+        """
+        if len(p) == 4:
+            p[0] = Return(expression=p[2])
+        else:
+            p[0] = Return(expression=None)
 
     def p_expression(self, p):
         """
