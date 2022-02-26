@@ -10,6 +10,13 @@ class Return(Stmt):
     expression = attr.ib()
 
 
+@attr.s(slots=True)
+class If(Stmt):
+    condition = attr.ib()
+    then_statement = attr.ib()
+    else_statement = attr.ib()
+
+
 class Expr(Stmt):
     pass
 

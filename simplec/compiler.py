@@ -6,6 +6,7 @@ from .syntax import (
     Binary,
     Name,
     Return,
+    If,
 )
 
 
@@ -14,6 +15,14 @@ def emit(mnemonic, *operands):
 
 
 class Compiler:
+    def __init__(self):
+        self.label_count = 0
+
+    def gen_label(self, name):
+        label = f"L_{name}_{self.label_count}"
+        self.label_count += 1
+        return label
+
     def compile(self, program, names):
         self.names = names
         frame_size = 4
@@ -36,6 +45,24 @@ class Compiler:
         match stmt:
             case Expr() as expr:
                 self.compile_expression(expr)
+            case If(condition=condition, then_statement=then_stmt, else_statement=None):
+                end_label = self.gen_label("end")
+                self.compile_expression(condition)
+                emit("cmp", "r0", "#0")
+                emit("beq", end_label)
+                self.compile_statement(then_stmt)
+                print(f"{end_label}:")
+            case If(condition=condition, then_statement=then_stmt, else_statement=else_stmt):
+                else_label = self.gen_label("else")
+                end_label = self.gen_label("end")
+                self.compile_expression(condition)
+                emit("cmp", "r0", "#0")
+                emit("beq", else_label)
+                self.compile_statement(then_stmt)
+                emit("b", end_label)
+                print(f"{else_label}:")
+                self.compile_statement(else_stmt)
+                print(f"{end_label}:")                
             case Return(expression=None):
                 emit("b", "L_return")
             case Return(expression=expr):

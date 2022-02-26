@@ -8,6 +8,7 @@ from .syntax import (
     Unary,
     Binary,
     Return,
+    If,
 )
 
 
@@ -55,11 +56,15 @@ class Parser:
         "RPAREN",
         "NUMBER",
         "RETURN",
+        "IF",
+        "ELSE",
         "NAME",
     )
 
     keywords = {
         "return": "RETURN",
+        "if": "IF",
+        "else": "ELSE",
     }
 
     t_ignore = " \r\t"
@@ -135,8 +140,21 @@ class Parser:
         """
         statement : expression SEMICOLON
                   | return
+                  | if
         """
         p[0] = p[1]
+
+    def p_if(self, p):
+        """
+        if : IF LPAREN expression RPAREN statement
+        """
+        p[0] = If(condition=p[3], then_statement=p[5], else_statement=None)
+
+    def p_if_else(self, p):
+        """
+        if : IF LPAREN expression RPAREN statement ELSE statement
+        """
+        p[0] = If(condition=p[3], then_statement=p[5], else_statement=p[7])
 
     def p_return(self, p):
         """
