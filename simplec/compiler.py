@@ -30,7 +30,7 @@ class Compiler:
             case Expr() as expr:
                 self.compile_expression(expr)
             case _:
-                raise NotImplementedError
+                raise ValueError(stmt)
 
     def compile_expression(self, expr):
         match expr:
@@ -119,4 +119,4 @@ class Compiler:
                     case _:
                         raise ValueError(f"unknown binary operator: {op}")
             case _:
-                raise NotImplementedError
+                raise ValueError(expr)
