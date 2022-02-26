@@ -43,4 +43,4 @@ class Binary(Expr, metaclass=ExprMeta):
 
 @attr.s(slots=True)
 class Paren(Expr, metaclass=ExprMeta):
-    operand = attr.ib()
+    expression = attr.ib()
