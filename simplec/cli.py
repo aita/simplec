@@ -8,10 +8,10 @@ from .parser import parse
 @click.argument("filename")
 def compiler(filename):
     with open(filename) as fp:
-        program, names = parse(fp.read())
+        program, frame = parse(fp.read())
         compiler = Compiler()
-        compiler.compile(program, names)
+        compiler.compile(program, frame)
 
 
 if __name__ == "__main__":
-    cli()
+    compiler()

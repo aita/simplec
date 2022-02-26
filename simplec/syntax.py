@@ -7,19 +7,25 @@ class Stmt:
 
 @attr.s(slots=True)
 class CompoundStmt(Stmt):
-    statements = attr.ib()
+    stmts = attr.ib()
 
 
 @attr.s(slots=True)
 class ReturnStmt(Stmt):
-    expression = attr.ib()
+    expr = attr.ib()
 
 
 @attr.s(slots=True)
 class IfStmt(Stmt):
     condition = attr.ib()
-    then_statement = attr.ib()
-    else_statement = attr.ib()
+    then_stmt = attr.ib()
+    else_stmt = attr.ib()
+
+
+@attr.s(slots=True)
+class WhileStmt(Stmt):
+    condition = attr.ib()
+    stmt = attr.ib()
 
 
 class Expr(Stmt):
@@ -35,7 +41,7 @@ class ExprMeta(type):
 
 
 @attr.s(slots=True)
-class NumberExpr(Expr, metaclass=ExprMeta):
+class Constant(Expr, metaclass=ExprMeta):
     literal = attr.ib()
 
 
@@ -60,4 +66,4 @@ class BinaryExpr(Expr, metaclass=ExprMeta):
 
 @attr.s(slots=True)
 class ParenExpr(Expr, metaclass=ExprMeta):
-    expression = attr.ib()
+    expr = attr.ib()
