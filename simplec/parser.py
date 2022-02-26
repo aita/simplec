@@ -2,13 +2,14 @@ import os
 
 from ply import lex, yacc
 from .syntax import (
-    Name,
-    Number,
-    Paren,
-    Unary,
-    Binary,
-    Return,
-    If,
+    NameExpr,
+    NumberExpr,
+    ParenExpr,
+    UnaryExpr,
+    BinaryExpr,
+    ReturnStmt,
+    IfStmt,
+    CompoundStmt,
 )
 
 
@@ -54,6 +55,8 @@ class Parser:
         "SEMICOLON",
         "LPAREN",
         "RPAREN",
+        "LBRACE",
+        "RBRACE",
         "NUMBER",
         "RETURN",
         "IF",
@@ -83,7 +86,8 @@ class Parser:
     t_SEMICOLON = r";"
     t_LPAREN = r"\("
     t_RPAREN = r"\)"
-    t_RETURN = r"return"
+    t_LBRACE = r"\{"
+    t_RBRACE = r"\}"
 
     def t_NAME(self, t):
         r"[a-zA-Z_][a-zA-Z0-9_]*"
@@ -141,20 +145,27 @@ class Parser:
         statement : expression SEMICOLON
                   | return
                   | if
+                  | compound
         """
         p[0] = p[1]
+
+    def p_compound_statement(self, p):
+        """
+        compound : LBRACE statement_list RBRACE
+        """
+        p[0] = CompoundStmt(p[2])
 
     def p_if(self, p):
         """
         if : IF LPAREN expression RPAREN statement
         """
-        p[0] = If(condition=p[3], then_statement=p[5], else_statement=None)
+        p[0] = IfStmt(condition=p[3], then_statement=p[5], else_statement=None)
 
     def p_if_else(self, p):
         """
         if : IF LPAREN expression RPAREN statement ELSE statement
         """
-        p[0] = If(condition=p[3], then_statement=p[5], else_statement=p[7])
+        p[0] = IfStmt(condition=p[3], then_statement=p[5], else_statement=p[7])
 
     def p_return(self, p):
         """
@@ -162,9 +173,9 @@ class Parser:
                | RETURN SEMICOLON
         """
         if len(p) == 4:
-            p[0] = Return(expression=p[2])
+            p[0] = ReturnStmt(expression=p[2])
         else:
-            p[0] = Return(expression=None)
+            p[0] = ReturnStmt(expression=None)
 
     def p_expression(self, p):
         """
@@ -180,7 +191,7 @@ class Parser:
         assign : expression EQUAL expression
         """
         p[1].is_lvar = True
-        p[0] = Binary(operator=p[2], left=p[1], right=p[3])
+        p[0] = BinaryExpr(operator=p[2], left=p[1], right=p[3])
 
     def p_binary(self, p):
         """
@@ -195,20 +206,20 @@ class Parser:
             | expression LESS_EQUAL expression
             | expression GREATER_EQUAL expression
         """
-        p[0] = Binary(operator=p[2], left=p[1], right=p[3])
+        p[0] = BinaryExpr(operator=p[2], left=p[1], right=p[3])
 
     def p_unary(self, p):
         """
         unary : PLUS expression
             | MINUS expression
         """
-        p[0] = Unary(operator=p[1], operand=p[2])
+        p[0] = UnaryExpr(operator=p[1], operand=p[2])
 
     def p_primary_number(self, p):
         """
         primary : NUMBER
         """
-        p[0] = Number(p[1])
+        p[0] = NumberExpr(p[1])
 
     def p_primary_name(self, p):
         """
@@ -223,13 +234,13 @@ class Parser:
                 offset = 4
             offset += 4
             self.names.append((name, offset))
-        p[0] = Name(name=name, offset=offset)
+        p[0] = NameExpr(name=name, offset=offset)
 
     def p_primary_paren(self, p):
         """
         primary : LPAREN expression RPAREN
         """
-        p[0] = Paren(expression=p[2])
+        p[0] = ParenExpr(expression=p[2])
 
     def p_error(self, p):
         # Read ahead looking for a closing ';'

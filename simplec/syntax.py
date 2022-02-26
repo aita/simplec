@@ -6,12 +6,17 @@ class Stmt:
 
 
 @attr.s(slots=True)
-class Return(Stmt):
+class CompoundStmt(Stmt):
+    statements = attr.ib()
+
+
+@attr.s(slots=True)
+class ReturnStmt(Stmt):
     expression = attr.ib()
 
 
 @attr.s(slots=True)
-class If(Stmt):
+class IfStmt(Stmt):
     condition = attr.ib()
     then_statement = attr.ib()
     else_statement = attr.ib()
@@ -30,29 +35,29 @@ class ExprMeta(type):
 
 
 @attr.s(slots=True)
-class Number(Expr, metaclass=ExprMeta):
+class NumberExpr(Expr, metaclass=ExprMeta):
     literal = attr.ib()
 
 
 @attr.s(slots=True)
-class Name(Expr, metaclass=ExprMeta):
+class NameExpr(Expr, metaclass=ExprMeta):
     name = attr.ib()
     offset = attr.ib()
 
 
 @attr.s(slots=True)
-class Unary(Expr, metaclass=ExprMeta):
+class UnaryExpr(Expr, metaclass=ExprMeta):
     operator = attr.ib()
     operand = attr.ib()
 
 
 @attr.s(slots=True)
-class Binary(Expr, metaclass=ExprMeta):
+class BinaryExpr(Expr, metaclass=ExprMeta):
     operator = attr.ib()
     left = attr.ib()
     right = attr.ib()
 
 
 @attr.s(slots=True)
-class Paren(Expr, metaclass=ExprMeta):
+class ParenExpr(Expr, metaclass=ExprMeta):
     expression = attr.ib()

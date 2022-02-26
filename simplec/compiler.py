@@ -1,17 +1,22 @@
 from .syntax import (
     Expr,
-    Paren,
-    Number,
-    Unary,
-    Binary,
-    Name,
-    Return,
-    If,
+    ParenExpr,
+    NumberExpr,
+    UnaryExpr,
+    BinaryExpr,
+    NameExpr,
+    ReturnStmt,
+    IfStmt,
+    CompoundStmt,
 )
 
 
 def emit(mnemonic, *operands):
     print(f"\t{mnemonic}\t{', '.join(operands)}")
+
+
+def emit_label(label):
+    print(f"{label}:")
 
 
 class Compiler:
@@ -31,78 +36,81 @@ class Compiler:
             frame_size = max_offset
 
         print(".globl main")
-        print("main:")
+        emit_label("main")
         emit("push", "{fp, lr}")
         emit("add", "fp", "sp", "#4")
         emit("sub", "sp", f"#{frame_size}")
         for stmt in program:
-            self.compile_statement(stmt)
-        print("L_return:")
+            self.emit_statement(stmt)
+        emit_label("L_return")
         emit("sub", "sp", "fp", "#4")
         emit("pop", "{fp, pc}")
 
-    def compile_statement(self, stmt):
+    def emit_statement(self, stmt):
         match stmt:
             case Expr() as expr:
-                self.compile_expression(expr)
-            case If(condition=condition, then_statement=then_stmt, else_statement=None):
+                self.emit_expression(expr)
+            case CompoundStmt(statements=stmts):
+                for stmt in stmts:
+                    self.emit_statement(stmt)
+            case IfStmt(condition=condition, then_statement=then_stmt, else_statement=None):
                 end_label = self.gen_label("end")
-                self.compile_expression(condition)
+                self.emit_expression(condition)
                 emit("cmp", "r0", "#0")
                 emit("beq", end_label)
-                self.compile_statement(then_stmt)
-                print(f"{end_label}:")
-            case If(condition=condition, then_statement=then_stmt, else_statement=else_stmt):
+                self.emit_statement(then_stmt)
+                emit_label(end_label)
+            case IfStmt(condition=condition, then_statement=then_stmt, else_statement=else_stmt):
                 else_label = self.gen_label("else")
                 end_label = self.gen_label("end")
-                self.compile_expression(condition)
+                self.emit_expression(condition)
                 emit("cmp", "r0", "#0")
                 emit("beq", else_label)
-                self.compile_statement(then_stmt)
+                self.emit_statement(then_stmt)
                 emit("b", end_label)
-                print(f"{else_label}:")
-                self.compile_statement(else_stmt)
-                print(f"{end_label}:")                
-            case Return(expression=None):
+                emit_label(else_label)
+                self.emit_statement(else_stmt)
+                emit_label(end_label)                
+            case ReturnStmt(expression=None):
                 emit("b", "L_return")
-            case Return(expression=expr):
-                self.compile_expression(expr)
+            case ReturnStmt(expression=expr):
+                self.emit_expression(expr)
                 emit("pop", "{r0}")
                 emit("b", "L_return")
             case _:
                 raise ValueError(f"unknown statement: {stmt}")
 
-    def compile_expression(self, expr):
+    def emit_expression(self, expr):
         match expr:
-            case Name(offset=offset, is_lvar=False):
+            case NameExpr(offset=offset, is_lvar=False):
                 emit("ldr", "r0", f"[fp, #{-offset}]")
                 emit("push", "{r0}")
-            case Number(literal=literal):
+            case NumberExpr(literal=literal):
                 emit("mov", "r0", f"#{literal}")
                 emit("push", "{r0}")
-            case Paren(expression=expression):
-                return self.compile_expression(expression)
-            case Unary(operator=op, operand=operand):
+            case ParenExpr(expression=expression):
+                return self.emit_expression(expression)
+            case UnaryExpr(operator=op, operand=operand):
                 match op:
                     case "+":
-                        self.compile_expression(operand)
+                        self.emit_expression(operand)
                     case "-":
-                        self.compile_expression(operand)
+                        self.emit_expression(operand)
                         emit("pop", "{r0}")
                         emit("neg", "r0")
                         emit("push", "r0")
                     case _:
                         raise ValueError(f"unknown unary operator: {op}")
-            case Binary(operator="=", left=left, right=right):
+            case BinaryExpr(operator="=", left=left, right=right):
                 if not left.is_lvar:
                     raise ValueError("LHS is not lvar")
-                right = self.compile_expression(right)
+                right = self.emit_expression(right)
                 emit("pop", "{r0}")
                 emit("str", "r0", f"[fp, #{-left.offset}]")
                 emit("push", "{r0}")
-            case Binary(operator=op, left=left, right=right):
-                left = self.compile_expression(left)
-                right = self.compile_expression(right)
+            case BinaryExpr(operator=op, left=left, right=right):
+                left = self.emit_expression(left)
+                right = self.emit_expression(right)
                 match op:
                     case "+":
                         emit("pop", "{r0, r1}")
