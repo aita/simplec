@@ -1,6 +1,5 @@
 # Generated from SimpleC.g4 by ANTLR 4.7.2
 from antlr4 import *
-
 if __name__ is not None and "." in __name__:
     from .SimpleCParser import SimpleCParser
 else:
@@ -72,6 +71,21 @@ class SimpleCVisitor(ParseTreeVisitor):
 
     # Visit a parse tree produced by SimpleCParser#primaryExpression.
     def visitPrimaryExpression(self, ctx:SimpleCParser.PrimaryExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#postfixExpression.
+    def visitPostfixExpression(self, ctx:SimpleCParser.PostfixExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#callExpression.
+    def visitCallExpression(self, ctx:SimpleCParser.CallExpressionContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#argumentExpressionList.
+    def visitArgumentExpressionList(self, ctx:SimpleCParser.ArgumentExpressionListContext):
         return self.visitChildren(ctx)
 
 

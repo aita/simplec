@@ -82,7 +82,15 @@ primaryExpression:
 	| constant = Constant
 	| '(' expr = expression ')';
 
-unaryExpression: op = ('+' | '-')? primaryExpression;
+postfixExpression: primaryExpression | callExpression;
+
+callExpression:
+	primaryExpression ('(' args = argumentExpressionList? ')');
+
+argumentExpressionList:
+	assignmentExpression (',' assignmentExpression)*;
+
+unaryExpression: op = ('+' | '-')? postfixExpression;
 
 multiplicativeExpression:
 	left = unaryExpression (

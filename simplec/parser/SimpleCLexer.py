@@ -1,9 +1,8 @@
 # Generated from SimpleC.g4 by ANTLR 4.7.2
-import sys
+from antlr4 import *
 from io import StringIO
 from typing.io import TextIO
-
-from antlr4 import *
+import sys
 
 
 def serializedATN():

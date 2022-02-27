@@ -4,6 +4,7 @@ from antlr4 import CommonTokenStream, InputStream
 
 from ..syntax import (
     BinaryExpr,
+    CallExpr,
     CompoundStmt,
     Constant,
     FunctionDecl,
@@ -79,7 +80,7 @@ class Visitor(SimpleCVisitor):
     def visitCompoundStatement(self, ctx: SimpleCParser.CompoundStatementContext):
         with self.set_scope(scope=getattr(ctx, "scope", None)):
             return CompoundStmt(
-                stmts=[stmt for stmt in self.visit(ctx.stmts)],
+                stmts=self.visit(ctx.stmts),
                 scope=self.scope,
             )
 
@@ -122,13 +123,26 @@ class Visitor(SimpleCVisitor):
 
         raise ValueError("invalid primary expression")
 
+    def visitCallExpression(self, ctx: SimpleCParser.CallExpressionContext):
+        expr = self.visit(ctx.primaryExpression())
+        if ctx.args:
+            args = self.visit(ctx.args)
+        else:
+            args = []
+        return CallExpr(expr=expr, args=args)
+
+    def visitArgumentExpressionList(
+        self, ctx: SimpleCParser.ArgumentExpressionListContext
+    ):
+        return [self.visit(expr) for expr in ctx.assignmentExpression()]
+
     def visitUnaryExpression(self, ctx: SimpleCParser.UnaryExpressionContext):
         if ctx.op:
             return UnaryExpr(
                 operator=ctx.op.text, operand=self.visit(ctx.primaryExpression())
             )
         else:
-            return self.visit(ctx.primaryExpression())
+            return self.visit(ctx.postfixExpression())
 
     def visitMultiplicativeExpression(
         self, ctx: SimpleCParser.MultiplicativeExpressionContext

@@ -82,6 +82,12 @@ class NameExpr(Expr, metaclass=ExprMeta):
 
 
 @attr.s(slots=True)
+class CallExpr(Expr, metaclass=ExprMeta):
+    expr = attr.ib()
+    args = attr.ib()
+
+
+@attr.s(slots=True)
 class UnaryExpr(Expr, metaclass=ExprMeta):
     operator = attr.ib()
     operand = attr.ib()
