@@ -1,6 +1,34 @@
 import attr
 
 
+@attr.s(slots=True)
+class Position:
+    start = attr.ib()
+    end = attr.ib()
+    line = attr.ib()
+    column = attr.ib()
+
+
+@attr.s(slots=True)
+class Symbol:
+    name = attr.ib()
+    pos = attr.ib()
+
+
+@attr.s(slots=True)
+class Scope:
+    parent = attr.ib()
+    children = attr.ib(factory=list)
+    symbols = attr.ib(factory=dict)
+
+    def find_name(self, name):
+        if name in self.symbols:
+            return name
+        if self.parent:
+            return self.parent.find_name(name)
+        return None
+
+
 class Stmt:
     pass
 
@@ -8,6 +36,7 @@ class Stmt:
 @attr.s(slots=True)
 class CompoundStmt(Stmt):
     stmts = attr.ib()
+    scope = attr.ib()
 
 
 @attr.s(slots=True)
@@ -48,7 +77,7 @@ class Constant(Expr, metaclass=ExprMeta):
 @attr.s(slots=True)
 class NameExpr(Expr, metaclass=ExprMeta):
     name = attr.ib()
-    offset = attr.ib()
+    offset = attr.ib(default=None)
 
 
 @attr.s(slots=True)
@@ -77,4 +106,4 @@ class Decl:
 class FunctionDecl:
     name = attr.ib()
     body = attr.ib()
-    frame = attr.ib()
+    scope = attr.ib()

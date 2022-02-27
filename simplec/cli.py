@@ -1,7 +1,7 @@
-import click
-
 import sys
 from contextlib import ExitStack
+
+import click
 
 from .compiler import Compiler
 from .parser import parse

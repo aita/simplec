@@ -1,14 +1,14 @@
 from .syntax import (
+    BinaryExpr,
+    CompoundStmt,
+    Constant,
     Expr,
     FunctionDecl,
-    ParenExpr,
-    Constant,
-    UnaryExpr,
-    BinaryExpr,
-    NameExpr,
-    ReturnStmt,
     IfStmt,
-    CompoundStmt,
+    NameExpr,
+    ParenExpr,
+    ReturnStmt,
+    UnaryExpr,
     WhileStmt,
 )
 
@@ -88,18 +88,18 @@ class Compiler:
                 self.emit("b", end_label)
                 self.emit_label(else_label)
                 self.emit_stmt(else_stmt)
-                self.emit_label(end_label)           
+                self.emit_label(end_label)
             case WhileStmt(condition=condition, stmt=stmt):
                 begin_label = self.gen_label("begin")
                 end_label = self.gen_label("end")
-                self.emit_label(begin_label)                 
+                self.emit_label(begin_label)
                 self.emit_expr(condition)
                 self.emit("pop", "{r0}")
                 self.emit("cmp", "r0", "#0")
                 self.emit("beq", end_label)
                 self.emit_stmt(stmt)
                 self.emit("b", begin_label)
-                self.emit_label(end_label)                 
+                self.emit_label(end_label)
             case _:
                 raise ValueError(f"unknown stmt: {stmt}")
 

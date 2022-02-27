@@ -16,6 +16,7 @@ RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
     build-essential \
     gdb-multiarch \
     gcc-arm-linux-gnueabihf \
+    libc6-dev-armhf-cross \
     antlr4
 
 RUN pip3 --disable-pip-version-check --no-cache-dir install poetry

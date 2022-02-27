@@ -1,26 +1,42 @@
-from ast import Constant, operator
+from contextlib import contextmanager
+
 from antlr4 import CommonTokenStream, InputStream
 
+from ..frame import Frame
+from ..syntax import (
+    BinaryExpr,
+    CompoundStmt,
+    Constant,
+    FunctionDecl,
+    IfStmt,
+    NameExpr,
+    ParenExpr,
+    Position,
+    ReturnStmt,
+    Scope,
+    Symbol,
+    UnaryExpr,
+    WhileStmt,
+)
 from .SimpleCLexer import SimpleCLexer
 from .SimpleCParser import SimpleCParser
 from .SimpleCVisitor import SimpleCVisitor
 
-from ..syntax import (
-    BinaryExpr,
-    CompoundStmt,
-    IfStmt,
-    NameExpr,
-    ReturnStmt,
-    UnaryExpr,
-    Constant,
-    ParenExpr,
-    WhileStmt,
-    FunctionDecl,
-)
-from ..frame import Frame
-
 
 class Visitor(SimpleCVisitor):
+    def __init__(self):
+        self.scope = Scope(parent=None)
+
+    @contextmanager
+    def set_scope(self, scope=None):
+        last_scope = self.scope
+        if scope is None:
+            self.scope = Scope(parent=last_scope)
+        else:
+            self.scope = scope
+        yield
+        self.scope = last_scope
+
     def visitProgram(self, ctx: SimpleCParser.ProgramContext):
         translationUnit = ctx.translationUnit()
         if translationUnit:
@@ -31,10 +47,12 @@ class Visitor(SimpleCVisitor):
         return [self.visit(decl) for decl in ctx.externalDeclaration()]
 
     def visitFunctionDefinition(self, ctx: SimpleCParser.FunctionDefinitionContext):
-        self.frame = Frame()
-        return FunctionDecl(
-            name=ctx.ident.text, body=self.visit(ctx.body), frame=self.frame
-        )
+        with self.set_scope():
+            return FunctionDecl(
+                name=ctx.ident.text,
+                body=self.visit(ctx.body),
+                scope=self.scope,
+            )
 
     def visitStatementList(self, ctx: SimpleCParser.StatementListContext):
         return [self.visit(ctx) for ctx in ctx.statement()]
@@ -70,10 +88,18 @@ class Visitor(SimpleCVisitor):
     def visitPrimaryExpression(self, ctx: SimpleCParser.PrimaryExpressionContext):
         if ctx.ident:
             name = ctx.ident.text
-            var = self.frame.get_var(name)
-            if var is None:
-                var = self.frame.new_var(name)
-            return NameExpr(name=name, offset=var.offset)
+            symbol = self.scope.find_name(name)
+            if symbol is None:
+                symbol = Symbol(
+                    name=name,
+                    pos=Position(
+                        start=ctx.ident.start,
+                        end=ctx.ident.stop,
+                        line=ctx.ident.line,
+                        column=ctx.ident.column,
+                    ),
+                )
+            return NameExpr(name=name)
         if ctx.constant:
             return Constant(literal=ctx.constant.text)
         if ctx.expr:

@@ -1,9 +1,11 @@
 # Generated from SimpleC.g4 by ANTLR 4.7.2
 # encoding: utf-8
-from antlr4 import *
+import sys
 from io import StringIO
 from typing.io import TextIO
-import sys
+
+from antlr4 import *
+
 
 def serializedATN():
     with StringIO() as buf:
