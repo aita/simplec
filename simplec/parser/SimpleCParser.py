@@ -142,14 +142,6 @@ class SimpleCParser ( Parser ):
         def getRuleIndex(self):
             return SimpleCParser.RULE_program
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterProgram" ):
-                listener.enterProgram(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitProgram" ):
-                listener.exitProgram(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitProgram" ):
                 return visitor.visitProgram(self)
@@ -190,14 +182,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_statementList
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStatementList" ):
-                listener.enterStatementList(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStatementList" ):
-                listener.exitStatementList(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitStatementList" ):
@@ -261,14 +245,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_statement
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterStatement" ):
-                listener.enterStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitStatement" ):
-                listener.exitStatement(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitStatement" ):
@@ -340,14 +316,6 @@ class SimpleCParser ( Parser ):
         def getRuleIndex(self):
             return SimpleCParser.RULE_expressionStatement
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpressionStatement" ):
-                listener.enterExpressionStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpressionStatement" ):
-                listener.exitExpressionStatement(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitExpressionStatement" ):
                 return visitor.visitExpressionStatement(self)
@@ -394,14 +362,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_returnStatement
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterReturnStatement" ):
-                listener.enterReturnStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitReturnStatement" ):
-                listener.exitReturnStatement(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitReturnStatement" ):
@@ -451,14 +411,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_compoundStatement
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterCompoundStatement" ):
-                listener.enterCompoundStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitCompoundStatement" ):
-                listener.exitCompoundStatement(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitCompoundStatement" ):
@@ -520,14 +472,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_ifStatement
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterIfStatement" ):
-                listener.enterIfStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitIfStatement" ):
-                listener.exitIfStatement(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitIfStatement" ):
@@ -600,14 +544,6 @@ class SimpleCParser ( Parser ):
         def getRuleIndex(self):
             return SimpleCParser.RULE_whileStatement
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterWhileStatement" ):
-                listener.enterWhileStatement(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitWhileStatement" ):
-                listener.exitWhileStatement(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitWhileStatement" ):
                 return visitor.visitWhileStatement(self)
@@ -653,14 +589,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_expression
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterExpression" ):
-                listener.enterExpression(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitExpression" ):
-                listener.exitExpression(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitExpression" ):
@@ -714,14 +642,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_primaryExpression
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterPrimaryExpression" ):
-                listener.enterPrimaryExpression(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitPrimaryExpression" ):
-                listener.exitPrimaryExpression(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitPrimaryExpression" ):
@@ -790,14 +710,6 @@ class SimpleCParser ( Parser ):
         def getRuleIndex(self):
             return SimpleCParser.RULE_unaryExpression
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterUnaryExpression" ):
-                listener.enterUnaryExpression(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitUnaryExpression" ):
-                listener.exitUnaryExpression(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitUnaryExpression" ):
                 return visitor.visitUnaryExpression(self)
@@ -863,14 +775,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_multiplicativeExpression
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterMultiplicativeExpression" ):
-                listener.enterMultiplicativeExpression(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitMultiplicativeExpression" ):
-                listener.exitMultiplicativeExpression(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitMultiplicativeExpression" ):
@@ -938,14 +842,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_additiveExpression
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAdditiveExpression" ):
-                listener.enterAdditiveExpression(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAdditiveExpression" ):
-                listener.exitAdditiveExpression(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitAdditiveExpression" ):
@@ -1020,14 +916,6 @@ class SimpleCParser ( Parser ):
         def getRuleIndex(self):
             return SimpleCParser.RULE_relationalExpression
 
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterRelationalExpression" ):
-                listener.enterRelationalExpression(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitRelationalExpression" ):
-                listener.exitRelationalExpression(self)
-
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitRelationalExpression" ):
                 return visitor.visitRelationalExpression(self)
@@ -1094,14 +982,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_equalityExpression
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterEqualityExpression" ):
-                listener.enterEqualityExpression(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitEqualityExpression" ):
-                listener.exitEqualityExpression(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitEqualityExpression" ):
@@ -1172,14 +1052,6 @@ class SimpleCParser ( Parser ):
 
         def getRuleIndex(self):
             return SimpleCParser.RULE_assignmentExpression
-
-        def enterRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "enterAssignmentExpression" ):
-                listener.enterAssignmentExpression(self)
-
-        def exitRule(self, listener:ParseTreeListener):
-            if hasattr( listener, "exitAssignmentExpression" ):
-                listener.exitAssignmentExpression(self)
 
         def accept(self, visitor:ParseTreeVisitor):
             if hasattr( visitor, "visitAssignmentExpression" ):
