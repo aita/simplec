@@ -11,12 +11,37 @@ from .syntax import (
     UnaryExpr,
     WhileStmt,
 )
+from .frame import (
+    Var, 
+    Frame,
+)
+
+
+def build_frame(scope, offset):
+    vars = {}
+
+    def _visit(scope):
+        nonlocal offset
+        for name, symbol in scope.symbols.items():
+            vars[symbol] = Var(
+                name=name, 
+                symbol=symbol, 
+                offset=offset,
+            )
+            offset += 4
+
+        for child in scope.children:
+            _visit(child)
+
+    _visit(scope)
+    return Frame(vars=vars, size=offset)
 
 
 class Compiler:
     def __init__(self, output):
         self.output = output
         self.label_count = 0
+        self.frame = None
 
     def print(self, *args):
         print(*args, file=self.output)
@@ -42,7 +67,8 @@ class Compiler:
                 self.emit_function_decl(func)
 
     def emit_function_decl(self, func):
-        frame_size = func.frame.size()
+        self.frame = build_frame(func.scope, offset=4)
+        frame_size = self.frame.size
         self.return_label = self.gen_label("return")
 
         self.print(f".globl {func.name}")
@@ -105,7 +131,8 @@ class Compiler:
 
     def emit_expr(self, expr):
         match expr:
-            case NameExpr(offset=offset, is_lvar=False):
+            case NameExpr(is_lvar=False):
+                offset = self.frame.vars[expr.symbol].offset
                 self.emit("ldr", "r0", f"[fp, #{-offset}]")
                 self.emit("push", "{r0}")
             case Constant(literal=literal):
@@ -127,9 +154,10 @@ class Compiler:
             case BinaryExpr(operator="=", left=left, right=right):
                 if not left.is_lvar:
                     raise ValueError("LHS is not lvar")
+                offset = self.frame.vars[left.symbol].offset
                 right = self.emit_expr(right)
                 self.emit("pop", "{r0}")
-                self.emit("str", "r0", f"[fp, #{-left.offset}]")
+                self.emit("str", "r0", f"[fp, #{-offset}]")
                 self.emit("push", "{r0}")
             case BinaryExpr(operator=op, left=left, right=right):
                 left = self.emit_expr(left)

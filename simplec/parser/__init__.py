@@ -23,6 +23,15 @@ from .SimpleCParser import SimpleCParser
 from .SimpleCVisitor import SimpleCVisitor
 
 
+def token_position(token):
+    return Position(
+        start=token.start,
+        end=token.stop,
+        line=token.line,
+        column=token.column,
+    )
+
+
 class Visitor(SimpleCVisitor):
     def __init__(self):
         self.scope = Scope(parent=None)
@@ -31,9 +40,10 @@ class Visitor(SimpleCVisitor):
     def set_scope(self, scope=None):
         last_scope = self.scope
         if scope is None:
-            self.scope = Scope(parent=last_scope)
-        else:
-            self.scope = scope
+            scope = Scope(parent=last_scope)
+        if scope != last_scope:
+            last_scope.children.append(scope)
+        self.scope = scope
         yield
         self.scope = last_scope
 
@@ -48,6 +58,7 @@ class Visitor(SimpleCVisitor):
 
     def visitFunctionDefinition(self, ctx: SimpleCParser.FunctionDefinitionContext):
         with self.set_scope():
+            ctx.body.scope = self.scope
             return FunctionDecl(
                 name=ctx.ident.text,
                 body=self.visit(ctx.body),
@@ -67,7 +78,11 @@ class Visitor(SimpleCVisitor):
         return ReturnStmt(expr=expr)
 
     def visitCompoundStatement(self, ctx: SimpleCParser.CompoundStatementContext):
-        return CompoundStmt(stmts=[stmt for stmt in self.visit(ctx.stmts)])
+        with self.set_scope(scope=getattr(ctx, "scope", None)):
+            return CompoundStmt(
+                stmts=[stmt for stmt in self.visit(ctx.stmts)],
+                scope=self.scope,
+            )
 
     def visitIfStatement(self, ctx: SimpleCParser.IfStatementContext):
         else_stmt = None
@@ -92,14 +107,15 @@ class Visitor(SimpleCVisitor):
             if symbol is None:
                 symbol = Symbol(
                     name=name,
-                    pos=Position(
-                        start=ctx.ident.start,
-                        end=ctx.ident.stop,
-                        line=ctx.ident.line,
-                        column=ctx.ident.column,
-                    ),
+                    decl=None,
+                    pos=token_position(ctx.ident),
                 )
-            return NameExpr(name=name)
+                self.scope.symbols[name] = symbol
+                expr = NameExpr(name=name, symbol=symbol)
+                symbol.decl = expr
+                return expr
+            else:
+                return NameExpr(name=name, symbol=symbol)
         if ctx.constant:
             return Constant(literal=ctx.constant.text)
         if ctx.expr:

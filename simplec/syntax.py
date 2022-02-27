@@ -9,9 +9,10 @@ class Position:
     column = attr.ib()
 
 
-@attr.s(slots=True)
+@attr.s(slots=True, eq=False)
 class Symbol:
     name = attr.ib()
+    decl = attr.ib()
     pos = attr.ib()
 
 
@@ -23,7 +24,7 @@ class Scope:
 
     def find_name(self, name):
         if name in self.symbols:
-            return name
+            return self.symbols[name]
         if self.parent:
             return self.parent.find_name(name)
         return None
@@ -77,7 +78,7 @@ class Constant(Expr, metaclass=ExprMeta):
 @attr.s(slots=True)
 class NameExpr(Expr, metaclass=ExprMeta):
     name = attr.ib()
-    offset = attr.ib(default=None)
+    symbol = attr.ib()
 
 
 @attr.s(slots=True)
