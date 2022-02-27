@@ -2,7 +2,6 @@ from contextlib import contextmanager
 
 from antlr4 import CommonTokenStream, InputStream
 
-from ..frame import Frame
 from ..syntax import (
     BinaryExpr,
     CompoundStmt,

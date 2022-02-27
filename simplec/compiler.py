@@ -1,3 +1,5 @@
+import attr
+
 from .syntax import (
     BinaryExpr,
     CompoundStmt,
@@ -11,10 +13,19 @@ from .syntax import (
     UnaryExpr,
     WhileStmt,
 )
-from .frame import (
-    Var, 
-    Frame,
-)
+
+
+@attr.s(slots=True)
+class Var:
+    name = attr.ib()
+    symbol = attr.ib()
+    offset = attr.ib()
+
+
+@attr.s(slots=True)
+class Frame:
+    size = attr.ib()
+    vars = attr.ib(factory=dict)
 
 
 def build_frame(scope, offset):
@@ -24,8 +35,8 @@ def build_frame(scope, offset):
         nonlocal offset
         for name, symbol in scope.symbols.items():
             vars[symbol] = Var(
-                name=name, 
-                symbol=symbol, 
+                name=name,
+                symbol=symbol,
                 offset=offset,
             )
             offset += 4
