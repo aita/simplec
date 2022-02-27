@@ -67,3 +67,14 @@ class BinaryExpr(Expr, metaclass=ExprMeta):
 @attr.s(slots=True)
 class ParenExpr(Expr, metaclass=ExprMeta):
     expr = attr.ib()
+
+
+class Decl:
+    pass
+
+
+@attr.s(slots=True)
+class FunctionDecl:
+    name = attr.ib()
+    body = attr.ib()
+    frame = attr.ib()

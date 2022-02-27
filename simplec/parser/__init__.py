@@ -15,13 +15,26 @@ from ..syntax import (
     Constant,
     ParenExpr,
     WhileStmt,
+    FunctionDecl,
 )
 from ..frame import Frame
 
 
 class Visitor(SimpleCVisitor):
-    def __init__(self):
+    def visitProgram(self, ctx: SimpleCParser.ProgramContext):
+        translationUnit = ctx.translationUnit()
+        if translationUnit:
+            return self.visit(translationUnit)
+        return []
+
+    def visitTranslationUnit(self, ctx: SimpleCParser.TranslationUnitContext):
+        return [self.visit(decl) for decl in ctx.externalDeclaration()]
+
+    def visitFunctionDefinition(self, ctx: SimpleCParser.FunctionDefinitionContext):
         self.frame = Frame()
+        return FunctionDecl(
+            name=ctx.ident.text, body=self.visit(ctx.body), frame=self.frame
+        )
 
     def visitStatementList(self, ctx: SimpleCParser.StatementListContext):
         return [self.visit(ctx) for ctx in ctx.statement()]
@@ -137,5 +150,4 @@ def parse(text):
     parser = SimpleCParser(stream)
     tree = parser.program()
     visitor = Visitor()
-    ast = visitor.visit(tree)
-    return ast, visitor.frame
+    return visitor.visit(tree)

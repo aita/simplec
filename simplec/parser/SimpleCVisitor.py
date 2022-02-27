@@ -14,6 +14,21 @@ class SimpleCVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SimpleCParser#translationUnit.
+    def visitTranslationUnit(self, ctx:SimpleCParser.TranslationUnitContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#externalDeclaration.
+    def visitExternalDeclaration(self, ctx:SimpleCParser.ExternalDeclarationContext):
+        return self.visitChildren(ctx)
+
+
+    # Visit a parse tree produced by SimpleCParser#functionDefinition.
+    def visitFunctionDefinition(self, ctx:SimpleCParser.FunctionDefinitionContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SimpleCParser#statementList.
     def visitStatementList(self, ctx:SimpleCParser.StatementListContext):
         return self.visitChildren(ctx)

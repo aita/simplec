@@ -7,5 +7,5 @@ def _callFUT(*args, **kwargs):
     return parse(*args, **kwargs)
 
 
-def test_identifier():
-    assert _callFUT("a") == syntax.NameExpr(name="a", offset=4)
+# def test_identifier():
+#     assert _callFUT("a") == syntax.NameExpr(name="a", offset=4)

@@ -43,7 +43,14 @@ Whitespace: [ \t]+ -> skip;
 
 Newline: ('\r' '\n'? | '\n') -> skip;
 
-program: statementList;
+program: translationUnit?;
+
+translationUnit: externalDeclaration+;
+
+externalDeclaration: functionDefinition;
+
+functionDefinition:
+	ident = Identifier '(' ')' body = compoundStatement;
 
 statementList: statement*;
 
