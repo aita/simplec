@@ -2,6 +2,7 @@ import attr
 
 from .syntax import (
     BinaryExpr,
+    CallExpr,
     CompoundStmt,
     Constant,
     Expr,
@@ -51,15 +52,15 @@ def build_frame(scope, offset):
     return Frame(vars=vars, size=-offset)
 
 
-def indirect(reg, offset=None):
-    if offset:
+def indirect(reg, offset=0):
+    if offset != 0:
         return f"[{reg}, #{offset}]"
     else:
         return f"[{reg}]"
 
 
 def regset(*regs):
-    s = ",".join(regs)
+    s = ", ".join(regs)
     return f"{{{s}}}"
 
 
@@ -172,7 +173,9 @@ class Compiler:
                 self.emit("mov", "r0", int(literal))
                 self.emit("push", regset("r0"))
             case ParenExpr(expr=expr):
-                return self.emit_expr(expr)
+                self.emit_expr(expr)
+            case CallExpr():
+                return self.emit_call_expr(expr)
             case UnaryExpr(operator=op, operand=operand):
                 match op:
                     case "+":
@@ -252,3 +255,18 @@ class Compiler:
                         raise ValueError(f"unknown binary operator: {op}")
             case _:
                 raise ValueError(f"unknwon expr: {expr}")
+
+    def emit_call_expr(self, expr):
+        match expr:
+            case CallExpr(expr=NameExpr(name=name), args=args):
+                reg_args = args[:4]
+                stack_args = args[4:]
+                for arg in stack_args[::-1]:
+                    self.emit_expr(arg)
+                for i, arg in enumerate(reg_args[::-1]):
+                    self.emit_expr(arg)
+                    self.emit("pop", regset("r0"))
+                    self.emit("mov", f"r{3-i}", "r0")
+                self.emit("bl", f"{name}(PLT)")
+            case _:
+                raise NotImplementedError
