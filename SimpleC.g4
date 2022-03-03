@@ -101,17 +101,17 @@ multiplicativeExpression:
 
 additiveExpression:
 	left = multiplicativeExpression (
-		op = ('+' | '-') right = multiplicativeExpression
+		op = ('+' | '-') right = additiveExpression
 	)?;
 
 relationalExpression:
 	left = additiveExpression (
-		op = ('<' | '>' | '<=' | '>=') right = additiveExpression
+		op = ('<' | '>' | '<=' | '>=') right = relationalExpression
 	)?;
 
 equalityExpression:
 	left = relationalExpression (
-		op = ('==' | '!=') right = relationalExpression
+		op = ('==' | '!=') right = equalityExpression
 	)?;
 
 assignmentExpression:

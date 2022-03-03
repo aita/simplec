@@ -61,12 +61,12 @@ def serializedATN():
         buf.write("\u0091\u0092\5\36\20\2\u0092%\3\2\2\2\u0093\u0096\5$\23")
         buf.write("\2\u0094\u0095\t\3\2\2\u0095\u0097\5&\24\2\u0096\u0094")
         buf.write("\3\2\2\2\u0096\u0097\3\2\2\2\u0097\'\3\2\2\2\u0098\u009b")
-        buf.write("\5&\24\2\u0099\u009a\t\2\2\2\u009a\u009c\5&\24\2\u009b")
+        buf.write("\5&\24\2\u0099\u009a\t\2\2\2\u009a\u009c\5(\25\2\u009b")
         buf.write("\u0099\3\2\2\2\u009b\u009c\3\2\2\2\u009c)\3\2\2\2\u009d")
-        buf.write("\u00a0\5(\25\2\u009e\u009f\t\4\2\2\u009f\u00a1\5(\25\2")
+        buf.write("\u00a0\5(\25\2\u009e\u009f\t\4\2\2\u009f\u00a1\5*\26\2")
         buf.write("\u00a0\u009e\3\2\2\2\u00a0\u00a1\3\2\2\2\u00a1+\3\2\2")
         buf.write("\2\u00a2\u00a5\5*\26\2\u00a3\u00a4\t\5\2\2\u00a4\u00a6")
-        buf.write("\5*\26\2\u00a5\u00a3\3\2\2\2\u00a5\u00a6\3\2\2\2\u00a6")
+        buf.write("\5,\27\2\u00a5\u00a3\3\2\2\2\u00a5\u00a6\3\2\2\2\u00a6")
         buf.write("-\3\2\2\2\u00a7\u00ad\5,\27\2\u00a8\u00a9\5$\23\2\u00a9")
         buf.write("\u00aa\7\27\2\2\u00aa\u00ab\5.\30\2\u00ab\u00ad\3\2\2")
         buf.write("\2\u00ac\u00a7\3\2\2\2\u00ac\u00a8\3\2\2\2\u00ad/\3\2")
@@ -1266,13 +1266,14 @@ class SimpleCParser ( Parser ):
             self.parser = parser
             self.left = None # MultiplicativeExpressionContext
             self.op = None # Token
-            self.right = None # MultiplicativeExpressionContext
+            self.right = None # AdditiveExpressionContext
 
-        def multiplicativeExpression(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(SimpleCParser.MultiplicativeExpressionContext)
-            else:
-                return self.getTypedRuleContext(SimpleCParser.MultiplicativeExpressionContext,i)
+        def multiplicativeExpression(self):
+            return self.getTypedRuleContext(SimpleCParser.MultiplicativeExpressionContext,0)
+
+
+        def additiveExpression(self):
+            return self.getTypedRuleContext(SimpleCParser.AdditiveExpressionContext,0)
 
 
         def Plus(self):
@@ -1315,7 +1316,7 @@ class SimpleCParser ( Parser ):
                     self._errHandler.reportMatch(self)
                     self.consume()
                 self.state = 152
-                localctx.right = self.multiplicativeExpression()
+                localctx.right = self.additiveExpression()
 
 
         except RecognitionException as re:
@@ -1333,13 +1334,14 @@ class SimpleCParser ( Parser ):
             self.parser = parser
             self.left = None # AdditiveExpressionContext
             self.op = None # Token
-            self.right = None # AdditiveExpressionContext
+            self.right = None # RelationalExpressionContext
 
-        def additiveExpression(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(SimpleCParser.AdditiveExpressionContext)
-            else:
-                return self.getTypedRuleContext(SimpleCParser.AdditiveExpressionContext,i)
+        def additiveExpression(self):
+            return self.getTypedRuleContext(SimpleCParser.AdditiveExpressionContext,0)
+
+
+        def relationalExpression(self):
+            return self.getTypedRuleContext(SimpleCParser.RelationalExpressionContext,0)
 
 
         def Less(self):
@@ -1388,7 +1390,7 @@ class SimpleCParser ( Parser ):
                     self._errHandler.reportMatch(self)
                     self.consume()
                 self.state = 157
-                localctx.right = self.additiveExpression()
+                localctx.right = self.relationalExpression()
 
 
         except RecognitionException as re:
@@ -1406,13 +1408,14 @@ class SimpleCParser ( Parser ):
             self.parser = parser
             self.left = None # RelationalExpressionContext
             self.op = None # Token
-            self.right = None # RelationalExpressionContext
+            self.right = None # EqualityExpressionContext
 
-        def relationalExpression(self, i:int=None):
-            if i is None:
-                return self.getTypedRuleContexts(SimpleCParser.RelationalExpressionContext)
-            else:
-                return self.getTypedRuleContext(SimpleCParser.RelationalExpressionContext,i)
+        def relationalExpression(self):
+            return self.getTypedRuleContext(SimpleCParser.RelationalExpressionContext,0)
+
+
+        def equalityExpression(self):
+            return self.getTypedRuleContext(SimpleCParser.EqualityExpressionContext,0)
 
 
         def Equal(self):
@@ -1455,7 +1458,7 @@ class SimpleCParser ( Parser ):
                     self._errHandler.reportMatch(self)
                     self.consume()
                 self.state = 162
-                localctx.right = self.relationalExpression()
+                localctx.right = self.equalityExpression()
 
 
         except RecognitionException as re:

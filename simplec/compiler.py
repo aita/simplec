@@ -82,8 +82,7 @@ class Compiler:
 
         reg_params = func.params[:4]
         stack_params = func.params[4:]
-        for i, param in enumerate(reg_params):
-            # self.emit("str", f"r{i}", indirect("fp", local_offset))
+        for param in reg_params:
             vars[param.symbol] = Var(
                 name=param.name,
                 symbol=param.symbol,
@@ -301,5 +300,7 @@ class Compiler:
                     self.emit("pop", regset("r0"))
                     self.emit("mov", f"r{3-i}", "r0")
                 self.emit("bl", f"{name}(PLT)")
+                self.emit("add", "sp", len(stack_args)*4)
+                self.emit("push", regset("r0"))
             case _:
                 raise NotImplementedError
