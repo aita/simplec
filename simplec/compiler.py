@@ -152,12 +152,10 @@ class Compiler:
         match stmt:
             case Expr() as expr:
                 self.emit_expr(expr)
-                self.emit("pop", regset("r0"))
             case ReturnStmt(expr=None):
                 self.emit("b", self.return_label)
             case ReturnStmt(expr=expr):
                 self.emit_expr(expr)
-                self.emit("pop", regset("r0"))
                 self.emit("b", self.return_label)
             case CompoundStmt(stmts=stmts):
                 for stmt in stmts:
@@ -165,7 +163,6 @@ class Compiler:
             case IfStmt(condition=condition, then_stmt=then_stmt, else_stmt=None):
                 end_label = self.gen_label("end")
                 self.emit_expr(condition)
-                self.emit("pop", regset("r0"))
                 self.emit("cmp", "r0", 0)
                 self.emit("beq", end_label)
                 self.emit_stmt(then_stmt)
@@ -174,7 +171,6 @@ class Compiler:
                 else_label = self.gen_label("else")
                 end_label = self.gen_label("end")
                 self.emit_expr(condition)
-                self.emit("pop", regset("r0"))
                 self.emit("cmp", "r0", 0)
                 self.emit("beq", else_label)
                 self.emit_stmt(then_stmt)
@@ -187,7 +183,6 @@ class Compiler:
                 end_label = self.gen_label("end")
                 self.emit_label(begin_label)
                 self.emit_expr(condition)
-                self.emit("pop", regset("r0"))
                 self.emit("cmp", "r0", 0)
                 self.emit("beq", end_label)
                 self.emit_stmt(stmt)
@@ -201,10 +196,8 @@ class Compiler:
             case NameExpr(is_lvar=False):
                 offset = self.frame.get_offset(expr.symbol)
                 self.emit("ldr", "r0", indirect("fp", offset))
-                self.emit("push", regset("r0"))
             case Constant(literal=literal):
                 self.emit("mov", "r0", int(literal))
-                self.emit("push", regset("r0"))
             case ParenExpr(expr=expr):
                 self.emit_expr(expr)
             case CallExpr():
@@ -215,9 +208,7 @@ class Compiler:
                         self.emit_expr(operand)
                     case "-":
                         self.emit_expr(operand)
-                        self.emit("pop", regset("r0"))
                         self.emit("neg", "r0")
-                        self.emit("push", "r0")
                     case _:
                         raise ValueError(f"unknown unary operator: {op}")
             case BinaryExpr(operator="=", left=left, right=right):
@@ -225,65 +216,54 @@ class Compiler:
                     raise ValueError("LHS is not lvar")
                 offset = self.frame.get_offset(left.symbol)
                 right = self.emit_expr(right)
-                self.emit("pop", regset("r0"))
                 self.emit("str", "r0", indirect("fp", offset))
-                self.emit("push", regset("r0"))
             case BinaryExpr(operator=op, left=left, right=right):
                 left = self.emit_expr(left)
+                self.emit("push", regset("r0"))
                 right = self.emit_expr(right)
                 match op:
                     case "+":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("add", "r0", "r1", "r0")
-                        self.emit("push", regset("r0"))
                     case "-":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("sub", "r0", "r1", "r0")
-                        self.emit("push", regset("r0"))
                     case "*":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("mul", "r0", "r1", "r0")
-                        self.emit("push", regset("r0"))
                     case "/":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("sdiv", "r0", "r1", "r0")
-                        self.emit("push", regset("r0"))
                     case "==":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("cmp", "r1", "r0")
                         self.emit("moveq", "r0", 1)
                         self.emit("movne", "r0", 0)
-                        self.emit("push", regset("r0"))
                     case "!=":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("cmp", "r1", "r0")
                         self.emit("moveq", "r0", 0)
                         self.emit("movne", "r0", 1)
-                        self.emit("push", regset("r0"))
                     case "<":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("cmp", "r1", "r0")
                         self.emit("movlt", "r0", 1)
                         self.emit("movge", "r0", 0)
-                        self.emit("push", regset("r0"))
                     case ">":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("cmp", "r1", "r0")
                         self.emit("movgt", "r0", 1)
                         self.emit("movle", "r0", 0)
-                        self.emit("push", regset("r0"))
                     case "<=":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("cmp", "r1", "r0")
                         self.emit("movle", "r0", 1)
                         self.emit("movgt", "r0", 0)
-                        self.emit("push", regset("r0"))
                     case ">=":
-                        self.emit("pop", regset("r0", "r1"))
+                        self.emit("pop", regset("r1"))
                         self.emit("cmp", "r1", "r0")
                         self.emit("movge", "r0", 1)
                         self.emit("movlt", "r0", 0)
-                        self.emit("push", regset("r0"))
                     case _:
                         raise ValueError(f"unknown binary operator: {op}")
             case _:
@@ -296,12 +276,11 @@ class Compiler:
                 stack_args = args[4:]
                 for arg in stack_args[::-1]:
                     self.emit_expr(arg)
+                    self.emit("push", regset("r0"))
                 for i, arg in enumerate(reg_args[::-1]):
                     self.emit_expr(arg)
-                    self.emit("pop", regset("r0"))
                     self.emit("mov", f"r{3-i}", "r0")
                 self.emit("bl", f"{name}(PLT)")
                 self.emit("add", "sp", len(stack_args)*4)
-                self.emit("push", regset("r0"))
             case _:
                 raise NotImplementedError
