@@ -130,7 +130,7 @@ class Compiler:
                 self.emit_function_decl(func)
 
     def emit_function_decl(self, func):
-        self.frame = self.build_frame(func, offset=-8)
+        self.frame = self.build_frame(func, offset=-12)
         frame_size = self.frame.size
         self.return_label = self.gen_label("return")
 
@@ -139,12 +139,14 @@ class Compiler:
         self.emit("push", regset("fp", "lr"))
         self.emit("add", "fp", "sp", 4)
         self.emit("sub", "sp", "sp", frame_size)
+        self.emit("str", "r4", indirect("fp", -8))
         reg_params = func.params[:4]
         for i, param in enumerate(reg_params):
             self.emit("str", f"r{i}", indirect("fp", self.frame.get_offset(param.symbol)))
         for stmt in func.body.stmts:
             self.emit_stmt(stmt)
         self.emit_label(self.return_label)
+        self.emit("ldr", "r4", indirect("fp", -8))
         self.emit("sub", "sp", "fp", 4)
         self.emit("pop", regset("fp", "pc"))
 
@@ -223,45 +225,45 @@ class Compiler:
                 right = self.emit_expr(right)
                 match op:
                     case "+":
-                        self.emit("pop", regset("r1"))
-                        self.emit("add", "r0", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("add", "r0", "r4", "r0")
                     case "-":
-                        self.emit("pop", regset("r1"))
-                        self.emit("sub", "r0", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("sub", "r0", "r4", "r0")
                     case "*":
-                        self.emit("pop", regset("r1"))
-                        self.emit("mul", "r0", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("mul", "r0", "r4", "r0")
                     case "/":
-                        self.emit("pop", regset("r1"))
-                        self.emit("sdiv", "r0", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("sdiv", "r0", "r4", "r0")
                     case "==":
-                        self.emit("pop", regset("r1"))
-                        self.emit("cmp", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("cmp", "r4", "r0")
                         self.emit("moveq", "r0", 1)
                         self.emit("movne", "r0", 0)
                     case "!=":
-                        self.emit("pop", regset("r1"))
-                        self.emit("cmp", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("cmp", "r4", "r0")
                         self.emit("moveq", "r0", 0)
                         self.emit("movne", "r0", 1)
                     case "<":
-                        self.emit("pop", regset("r1"))
-                        self.emit("cmp", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("cmp", "r4", "r0")
                         self.emit("movlt", "r0", 1)
                         self.emit("movge", "r0", 0)
                     case ">":
-                        self.emit("pop", regset("r1"))
-                        self.emit("cmp", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("cmp", "r4", "r0")
                         self.emit("movgt", "r0", 1)
                         self.emit("movle", "r0", 0)
                     case "<=":
-                        self.emit("pop", regset("r1"))
-                        self.emit("cmp", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("cmp", "r4", "r0")
                         self.emit("movle", "r0", 1)
                         self.emit("movgt", "r0", 0)
                     case ">=":
-                        self.emit("pop", regset("r1"))
-                        self.emit("cmp", "r1", "r0")
+                        self.emit("pop", regset("r4"))
+                        self.emit("cmp", "r4", "r0")
                         self.emit("movge", "r0", 1)
                         self.emit("movlt", "r0", 0)
                     case _:
@@ -279,7 +281,9 @@ class Compiler:
                     self.emit("push", regset("r0"))
                 for i, arg in enumerate(reg_args[::-1]):
                     self.emit_expr(arg)
-                    self.emit("mov", f"r{3-i}", "r0")
+                    reg = 3 - i
+                    if reg > 0:
+                        self.emit("mov", f"r{reg}", "r0")
                 self.emit("bl", f"{name}(PLT)")
                 self.emit("add", "sp", len(stack_args)*4)
             case _:
