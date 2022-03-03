@@ -16,6 +16,7 @@ def fixture_path(path):
     [
         ("fixtures/one.c", 1),
         ("fixtures/add.c", 8),
+        ("fixtures/call.c", 45),
     ],
 )
 def test_compiler(tmpdir, src, returncode):

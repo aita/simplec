@@ -152,6 +152,7 @@ class Compiler:
         match stmt:
             case Expr() as expr:
                 self.emit_expr(expr)
+                self.emit("pop", regset("r0"))
             case ReturnStmt(expr=None):
                 self.emit("b", self.return_label)
             case ReturnStmt(expr=expr):
