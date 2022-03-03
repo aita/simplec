@@ -18,6 +18,7 @@ Plus: '+';
 Minus: '-';
 Star: '*';
 Div: '/';
+And: '&';
 
 Question: '?';
 Colon: ':';
@@ -92,7 +93,8 @@ callExpression:
 argumentExpressionList:
 	assignmentExpression (',' assignmentExpression)*;
 
-unaryExpression: op = ('+' | '-')? postfixExpression;
+unaryExpression:
+	op = ('+' | '-' | '*' | '&')? postfixExpression;
 
 multiplicativeExpression:
 	left = unaryExpression (

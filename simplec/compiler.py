@@ -195,7 +195,7 @@ class Compiler:
 
     def emit_expr(self, expr):
         match expr:
-            case NameExpr(is_lvar=False):
+            case NameExpr():
                 offset = self.frame.get_offset(expr.symbol)
                 self.emit("ldr", "r0", indirect("fp", offset))
             case Constant(literal=literal):
@@ -211,6 +211,19 @@ class Compiler:
                     case "-":
                         self.emit_expr(operand)
                         self.emit("neg", "r0")
+                    case '&':
+                        match operand:
+                            case NameExpr():
+                                offset = self.frame.get_offset(operand.symbol)
+                                if offset > 0:
+                                    self.emit("add", "r0", "fp", offset)
+                                else:
+                                    self.emit("sub", "r0", "fp", -offset)
+                            case _:
+                                raise ValueError("the expression is not addressable")
+                    case '*':
+                        offset = self.frame.get_offset(operand.symbol)
+                        self.emit("ldr", "r0", indirect("r0"))
                     case _:
                         raise ValueError(f"unknown unary operator: {op}")
             case BinaryExpr(operator="=", left=left, right=right):
