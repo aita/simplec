@@ -110,7 +110,15 @@ class Decl:
 
 
 @attr.s(slots=True)
-class FunctionDecl:
+class FunctionDecl(Decl):
     name = attr.ib()
+    params = attr.ib()
     body = attr.ib()
     scope = attr.ib()
+    symbol = attr.ib()
+
+
+@attr.s(slots=True)
+class ParamDecl(Decl):
+    name = attr.ib()
+    symbol = attr.ib()

@@ -10,6 +10,7 @@ from ..syntax import (
     FunctionDecl,
     IfStmt,
     NameExpr,
+    ParamDecl,
     ParenExpr,
     Position,
     ReturnStmt,
@@ -35,6 +36,22 @@ def token_position(token):
 class Visitor(SimpleCVisitor):
     def __init__(self):
         self.scope = Scope(parent=None)
+        self.errors = []
+
+    def error(self, message):
+        self.errors.append(message)
+
+    def new_symbol(self, ident):
+        name = ident.text
+        if name in self.scope.symbols:
+            self.error("already declared")
+        symbol = Symbol(
+            name=name,
+            decl=None,
+            pos=token_position(ident),
+        )
+        self.scope.symbols[name] = symbol
+        return symbol
 
     @contextmanager
     def set_scope(self, scope=None):
@@ -58,12 +75,33 @@ class Visitor(SimpleCVisitor):
 
     def visitFunctionDefinition(self, ctx: SimpleCParser.FunctionDefinitionContext):
         with self.set_scope():
+            symbol = self.new_symbol(ctx.ident)
             ctx.body.scope = self.scope
-            return FunctionDecl(
+            if ctx.params:
+                params = self.visit(ctx.params)
+            else:
+                params = []
+            func = FunctionDecl(
                 name=ctx.ident.text,
+                params=params,
                 body=self.visit(ctx.body),
                 scope=self.scope,
+                symbol=symbol,
             )
+            symbol.decl = func
+            return func
+
+    def visitIdentifierList(self, ctx: SimpleCParser.IdentifierListContext):
+        params = []
+        for ident in ctx.Identifier():
+            symbol = self.new_symbol(ident.symbol)
+            decl = ParamDecl(
+                name=ident.symbol.text,
+                symbol=symbol,
+            )
+            symbol.decl = decl
+            params.append(decl)
+        return params
 
     def visitStatementList(self, ctx: SimpleCParser.StatementListContext):
         return [self.visit(ctx) for ctx in ctx.statement()]
@@ -105,12 +143,7 @@ class Visitor(SimpleCVisitor):
             name = ctx.ident.text
             symbol = self.scope.find_name(name)
             if symbol is None:
-                symbol = Symbol(
-                    name=name,
-                    decl=None,
-                    pos=token_position(ctx.ident),
-                )
-                self.scope.symbols[name] = symbol
+                symbol = self.new_symbol(ctx.ident)
                 expr = NameExpr(name=name, symbol=symbol)
                 symbol.decl = expr
                 return expr
@@ -139,7 +172,7 @@ class Visitor(SimpleCVisitor):
     def visitUnaryExpression(self, ctx: SimpleCParser.UnaryExpressionContext):
         if ctx.op:
             return UnaryExpr(
-                operator=ctx.op.text, operand=self.visit(ctx.primaryExpression())
+                operator=ctx.op.text, operand=self.visit(ctx.postfixExpression())
             )
         else:
             return self.visit(ctx.postfixExpression())

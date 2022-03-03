@@ -29,6 +29,11 @@ class SimpleCVisitor(ParseTreeVisitor):
         return self.visitChildren(ctx)
 
 
+    # Visit a parse tree produced by SimpleCParser#identifierList.
+    def visitIdentifierList(self, ctx:SimpleCParser.IdentifierListContext):
+        return self.visitChildren(ctx)
+
+
     # Visit a parse tree produced by SimpleCParser#statementList.
     def visitStatementList(self, ctx:SimpleCParser.StatementListContext):
         return self.visitChildren(ctx)

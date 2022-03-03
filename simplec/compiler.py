@@ -9,6 +9,7 @@ from .syntax import (
     FunctionDecl,
     IfStmt,
     NameExpr,
+    ParamDecl,
     ParenExpr,
     ReturnStmt,
     UnaryExpr,
@@ -32,25 +33,6 @@ class Frame:
         return self.vars[symbol].offset
 
 
-def build_frame(scope, offset):
-    vars = {}
-
-    def _visit(scope):
-        nonlocal offset
-        for name, symbol in scope.symbols.items():
-            vars[symbol] = Var(
-                name=name,
-                symbol=symbol,
-                offset=offset,
-            )
-            offset -= 4
-
-        for child in scope.children:
-            _visit(child)
-
-    _visit(scope)
-    return Frame(vars=vars, size=-offset)
-
 
 def indirect(reg, offset=0):
     if offset != 0:
@@ -72,6 +54,54 @@ class Compiler:
 
     def print(self, *args):
         print(*args, file=self.output)
+
+    def build_frame(self, func, offset):
+        vars = {}
+        local_offset = offset
+
+        def _visit(scope):
+            nonlocal local_offset
+            for name, symbol in scope.symbols.items():
+                if func.symbol == symbol:
+                    continue
+                match symbol.decl:
+                    case ParamDecl():
+                        pass
+                    case _:
+                        vars[symbol] = Var(
+                            name=name,
+                            symbol=symbol,
+                            offset=local_offset,
+                        )
+                        local_offset -= 4
+
+            for child in scope.children:
+                _visit(child)
+
+        _visit(func.scope)
+
+        reg_params = func.params[:4]
+        stack_params = func.params[4:]
+        for i, param in enumerate(reg_params):
+            # self.emit("str", f"r{i}", indirect("fp", local_offset))
+            vars[param.symbol] = Var(
+                name=param.name,
+                symbol=param.symbol,
+                offset=local_offset,
+            )
+            local_offset -= 4
+
+        stack_param_offset = 4
+        for param in stack_params:
+            symbol = param.symbol
+            vars[symbol] = Var(
+                name=param.name,
+                symbol=symbol,
+                offset=stack_param_offset,
+            )
+            stack_param_offset += 4
+
+        return Frame(vars=vars, size=-local_offset)
 
     def emit(self, mnemonic, *operands):
         def to_str(operand):
@@ -101,7 +131,7 @@ class Compiler:
                 self.emit_function_decl(func)
 
     def emit_function_decl(self, func):
-        self.frame = build_frame(func.scope, offset=-4)
+        self.frame = self.build_frame(func, offset=-8)
         frame_size = self.frame.size
         self.return_label = self.gen_label("return")
 
@@ -109,7 +139,10 @@ class Compiler:
         self.emit_label(func.name)
         self.emit("push", regset("fp", "lr"))
         self.emit("add", "fp", "sp", 4)
-        self.emit("sub", "sp", frame_size)
+        self.emit("sub", "sp", "sp", frame_size)
+        reg_params = func.params[:4]
+        for i, param in enumerate(reg_params):
+            self.emit("str", f"r{i}", indirect("fp", self.frame.get_offset(param.symbol)))
         for stmt in func.body.stmts:
             self.emit_stmt(stmt)
         self.emit_label(self.return_label)

@@ -50,7 +50,9 @@ translationUnit: externalDeclaration+;
 externalDeclaration: functionDefinition;
 
 functionDefinition:
-	ident = Identifier '(' ')' body = compoundStatement;
+	ident = Identifier '(' params = identifierList? ')' body = compoundStatement;
+
+identifierList: Identifier (',' Identifier)*;
 
 statementList: statement*;
 
